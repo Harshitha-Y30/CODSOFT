@@ -1,0 +1,32 @@
+# Task 3: Simple Recommendation System (Content-Based Filtering)
+
+# Sample dataset of movies and their genres
+movies = {
+    "Inception": ["Action", "Sci-Fi", "Thriller"],
+    "The Matrix": ["Action", "Sci-Fi"],
+    "Interstellar": ["Adventure", "Drama", "Sci-Fi"],
+    "The Godfather": ["Crime", "Drama"],
+    "The Dark Knight": ["Action", "Crime", "Drama"],
+    "Forrest Gump": ["Drama", "Romance"],
+    "Titanic": ["Drama", "Romance"]
+}
+
+def recommend_movies(user_likes, top_n=3):
+    scores = {}
+    for movie, genres in movies.items():
+        # Count matching genres between user's preferences and movie genres
+        match_score = len(set(user_likes) & set(genres))
+        scores[movie] = match_score
+    
+    # Sort movies by score (descending) and return top N
+    sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    recommendations = [movie for movie, score in sorted_movies if score > 0]
+    
+    return recommendations[:top_n]
+
+# Example usage
+if __name__ == "__main__":
+    user_preferences = ["Action", "Sci-Fi"]  # User likes
+    results = recommend_movies(user_preferences)
+    print("User Preferences:", user_preferences)
+    print("Recommended Movies:", results)
