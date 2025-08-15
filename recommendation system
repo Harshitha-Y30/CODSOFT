@@ -1,10 +1,5 @@
-# Recommendation System - Movies, Books, Products
-# Content-based filtering with partial matching and genre hints
-
 def recommend(dataset, key, preference):
     return [item["title"] for item in dataset if preference.lower() in item[key].lower()]
-
-# Sample datasets
 movies = [
     {"title": "Inception", "genre": "Sci-Fi"},
     {"title": "Interstellar", "genre": "Sci-Fi"},
