@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FindMyProduct</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rasa:wght@300&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4cc9f0;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --success-color: #4bb543;
+      --warning-color: #ffcc00;
+      --danger-color: #ff3333;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      color: var(--dark-color);
+      transition: all 0.3s ease;
+    }
+    
+    /* Header Styles */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 5%;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo span {
+      margin-left: 10px;
+    }
+    
+    .search-container {
+      display: flex;
+      width: 50%;
+      max-width: 600px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid #ddd;
+      border-radius: 30px 0 0 30px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .search-input:focus {
+      border-color: var(--primary-color);
+    }
+    
+    .search-button {
+      padding: 12px 25px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0 30px 30px 0;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .search-button:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .reserves-cart {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .reserves {
+      font-weight: 500;
+      color: var(--dark-color);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .reserves:hover {
+      color: var(--primary-color);
+    }
+    
+    .cart-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      position: relative;
+      color: var(--dark-color);
+      transition: transform 0.2s;
+    }
+    
+    .cart-btn:hover {
+      transform: scale(1.1);
+      color: var(--primary-color);
+    }
+    
+    .cart-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: var(--danger-color);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Sidebar Styles */
+    .hamburger {
+      position: fixed;
+      left: 15px;
+      top: 15px;
+      cursor: pointer;
+      z-index: 1000;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: white;
+      transition: all 0.3s;
+    }
+    
+    .hamburger:hover {
+      background-color: var(--primary-color);
+    }
+    
+    .hamburger:hover div {
+      background-color: white;
+    }
+    
+    .hamburger div {
+      width: 25px;
+      height: 3px;
+      background-color: var(--dark-color);
+      margin: 4px 0;
+      transition: 0.3s;
+    }
+    
+    .sidebar {
+      position: fixed;
+      left: -300px;
+      top: 0;
+      width: 280px;
+      height: 100vh;
+      background: white;
+      padding: 20px;
+      transition: 0.3s;
+      overflow-y: auto;
+      z-index: 999;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar.active {
+      left: 0;
+    }
+    
+    .profile-section {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-top: 20px;
+    }
+    
+    .profile-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 2rem;
+      box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+    }
+    
+    .profile-section h3 {
+      color: var(--dark-color);
+      margin-bottom: 5px;
+    }
+    
+    .profile-section p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .menu-item {
+      padding: 15px;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    
+    .menu-item i {
+      margin-right: 10px;
+      color: var(--primary-color);
+      width: 20px;
+      text-align: center;
+    }
+    
+    .menu-item:hover {
+      background-color: rgba(67, 97, 238, 0.1);
+      padding-left: 20px;
+      color: var(--primary-color);
+    }
+    
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 998;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .sidebar.active ~ .overlay {
+      display: block;
+      opacity: 1;
+    }
+    
+    .sign-in-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .sign-in-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+    
+    /* Menu Bar Styles */
+    .menu-bar {
+      background: white;
+      padding: 15px 5%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 80px;
+      z-index: 900;
+    }
+    
+    .menu-bar ul {
+      display: flex;
+      list-style: none;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    
+    .menu-bar li a {
+      text-decoration: none;
+      color: var(--dark-color);
+      font-weight: 500;
+      padding: 8px 15px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    
+    .menu-bar li a:hover {
+      background-color: rgba(67, 97, 238, 0.1);
+      color: var(--primary-color);
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      padding: 20px 5%;
+      margin-top: 20px;
+    }
+    
+    /* Carousel Styles */
+    .carousel {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .carousel-container {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+    
+    .slide {
+      min-width: 100%;
+      position: relative;
+    }
+    
+    .slide img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .slide:hover img {
+      transform: scale(1.02);
+    }
+    
+    .prev, .next {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(255,255,255,0.7);
+      color: var(--dark-color);
+      border: none;
+      padding: 15px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      z-index: 10;
+      transition: all 0.3s;
+    }
+    
+    .prev:hover, .next:hover {
+      background-color: white;
+      color: var(--primary-color);
+    }
+    
+    .prev {
+      left: 20px;
+    }
+    
+    .next {
+      right: 20px;
+    }
+    
+    .carousel-dots {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .dot.active {
+      background-color: white;
+      transform: scale(1.2);
+    }
+    
+    /* Categories Section */
+    .categories {
+      margin: 40px auto;
+      max-width: 1200px;
+    }
+    
+    .categories h2 {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      color: var(--dark-color);
+      text-align: center;
+      position: relative;
+      padding-bottom: 15px;
+    }
+    
+    .categories h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    }
+    
+    .category-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 25px;
+    }
+    
+    .category {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .category:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .category img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 15px;
+      transition: transform 0.3s;
+    }
+    
+    .category:hover img {
+      transform: scale(1.1);
+    }
+    
+    .category p {
+      font-weight: 600;
+      color: var(--dark-color);
+      margin-bottom: 0;
+    }
+    
+    .hover-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+    
+    .category:hover .hover-bar {
+      transform: scaleX(1);
+    }
+    
+    /* Search Results Styles */
+    #searchResults {
+      display: none;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    
+    .search-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .search-header h2 {
+      color: var(--dark-color);
+      font-size: 1.8rem;
+    }
+    
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: white;
+      color: var(--dark-color);
+      border: 1px solid #ddd;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .back-btn:hover {
+      background-color: #f1f1f1;
+      transform: translateX(-5px);
+    }
+    
+    .store-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+      padding: 25px;
+      transition: all 0.3s;
+      border-left: 4px solid transparent;
+    }
+    
+    .store-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border-left-color: var(--primary-color);
+    }
+    
+    .store-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .store-name {
+      font-size: 1.4rem;
+      margin: 0;
+      color: var(--dark-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .store-status {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 15px;
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .store-address {
+      color: #666;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .store-distance {
+      color: var(--primary-color);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .products {
+      margin-top: 20px;
+    }
+    
+    .product {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .product:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .product-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .product-name {
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+    
+    .product-price {
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    
+    .product-stock {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .in-stock {
+      color: var(--success-color);
+    }
+    
+    .low-stock {
+      color: var(--warning-color);
+    }
+    
+    .out-of-stock {
+      color: var(--danger-color);
+    }
+    
+    .store-map {
+      height: 200px;
+      border-radius: 8px;
+      margin-top: 20px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .select-store-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .select-store-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+    
+    .loading, .no-results, .error {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.1em;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary-color);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Footer Styles */
+    footer {
+      background: var(--dark-color);
+      color: white;
+      padding: 50px 5% 20px;
+      margin-top: 50px;
+    }
+    
+    .footer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .column h3 {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .column h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--primary-color);
+    }
+    
+    .column ul {
+      list-style: none;
+    }
+    
+    .column li {
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .column li:hover {
+      color: var(--accent-color);
+      transform: translateX(5px);
+    }
+    
+    footer p {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+      header {
+        padding: 15px 3%;
+      }
+      
+      .menu-bar ul {
+        gap: 5px;
+      }
+      
+      .menu-bar li a {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+      
+      .category-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .search-container {
+        width: 60%;
+      }
+      
+      .reserves {
+        display: none;
+      }
+      
+      .menu-bar ul {
+        overflow-x: auto;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .menu-bar li {
+        flex-shrink: 0;
+      }
+      
+      .slide img {
+        height: 300px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      header {
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+      
+      .logo {
+        order: 1;
+      }
+      
+      .search-container {
+        order: 3;
+        width: 100%;
+      }
+      
+      .reserves-cart {
+        order: 2;
+        margin-left: auto;
+      }
+      
+      .menu-bar {
+        top: 120px;
+      }
+      
+      .category-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+      }
+      
+      .store-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .select-store-btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+      }
+    }
+    
+    /* Animation Classes */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .slide-up {
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Pulse Animation for Special Offers */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    .user-location {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(67, 97, 238, 0.1);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .user-location i {
+      color: var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+      .user-location {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <i class="fas fa-search-location"></i>
+      <span>FindMyProduct</span>
+    </div>
+    <div class="search-container">
+      <input type="text" id="product" class="search-input" placeholder="Search for anything...">
+      <button onclick="findStores()" class="search-button">
+        <i class="fas fa-search"></i> Search
+      </button>
+    </div>
+    <div class="reserves-cart">
+      <span class="reserves">Reserves<button class="cart-btn" onclick="window.location.href='cart.html'">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count">3</span>
+      </button></span>
+      
+      <button class="sign-in-btn" id="loginBtn">
+        <i class="fas fa-user"></i> Sign In
+      </button>
+      <script>document.getElementById('loginBtn').addEventListener('click', () => {
+        const username = localStorage.getItem('username');
+        if (username) {
+          localStorage.removeItem('username');
+          location.reload();
+        } else {
+          window.location.href = 'owner.html?return=rough.html';
+        }
+      });</script>
+    
+      </div>
+  </header>
+
+  <!-- Hamburger Menu -->
+  <div class="hamburger" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="profile-section">
+      <div class="profile-icon">
+        <i class="fas fa-user"></i>
+      </div>
+      <h3>Hi <span id="userSpan">Guest</span></h3>
+      
+      <script>
+        const username = localStorage.getItem('username'); // Retrieve username
+        const userSpan = document.getElementById('userSpan'); // Select correct element
+      
+        if (username) {
+          userSpan.textContent = username; // Update greeting
+        }
+      </script>
+    </div>
+    <div class="menu-item" onclick="navigateTo('my-items')">
+      <i class="fas fa-box-open"></i> My Items
+    </div>
+    <div class="menu-item" onclick="navigateTo('departments')">
+      <i class="fas fa-list-ul"></i> Departments
+    </div>
+    <div class="menu-item" onclick="navigateTo('services')">
+      <i class="fas fa-concierge-bell"></i> Services
+    </div>
+    <div class="menu-item" onclick="navigateTo('feedback')">
+      <i class="fas fa-comment-alt"></i> Feedback
+    </div>
+    <div class="menu-item" onclick="navigateTo('contact')">
+      <i class="fas fa-phone-alt"></i> Contact Us
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Menu Bar -->
+  <nav class="menu-bar">
+    <ul>
+      <li><a href="#"><i class="fas fa-shopping-basket"></i> Groceries</a></li>
+      <li><a href="#"><i class="fas fa-tshirt"></i> Clothing</a></li>
+      <li><a href="#"><i class="fas fa-laptop"></i> Electronics</a></li>
+      <li><a href="#"><i class="fas fa-couch"></i> Home & Furniture</a></li>
+      <li><a href="#"><i class="fas fa-book"></i> Books</a></li>
+      <li><a href="#"><i class="fas fa-gamepad"></i> Gaming</a></li>
+      <li><a href="#"><i class="fas fa-ellipsis-h"></i> More</a></li>
+    </ul>
+  </nav>
+
+  <div class="main-content" id="mainContent">
+    <!-- Carousel -->
+    <div class="carousel">
+      <button class="prev" onclick="moveSlide(-1)">❮</button>
+      <div class="carousel-container">
+        <div class="slides" id="slides">
+          <div class="slide" onclick="window.open('https://www.w3schools.com/', '_blank')">
+            <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Tech Products">
+          </div>
+          <div class="slide" onclick="window.open('https://www.geeksforgeeks.org/', '_blank')">
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Headphones Sale">
+          </div>
+          <div class="slide" onclick="window.open('https://leetcode.com/', '_blank')">
+            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Smart Watches">
+          </div>
+        </div>
+      </div>
+      <button class="next" onclick="moveSlide(1)">❯</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <!-- Categories Section -->
+    <section class="categories">
+      <h2>Explore Popular Categories</h2>
+      <div class="category-container">
+        <div class="category" onclick="navigateToCategory('luxury')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2786/2786393.png" alt="Luxury" />
+          <p>Luxury</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category" onclick="navigateToCategory('sneakers')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2589/2589903.png" alt="Sneakers" />
+          <p>Sneakers</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category" onclick="navigateToCategory('p&a')">
+          <img src="https://cdn-icons-png.flaticon.com/512/3058/3058991.png" alt="P&A" />
+          <p>Perfume & Aftershave</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category" onclick="navigateToCategory('refurbished')">
+          <img src="https://cdn-icons-png.flaticon.com/512/3081/3081981.png" alt="Refurbished" />
+          <p>Refurbished</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category" onclick="navigateToCategory('trading-cards')">
+          <img src="https://cdn-icons-png.flaticon.com/512/3048/3048127.png" alt="Trading Cards" />
+          <p>Trading Cards</p>
+          <div class="hover-bar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="categories">
+      <h2>Featured Products</h2>
+      <div class="category-container">
+        <div class="category pulse" onclick="navigateToProduct('airpods')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2965/2965300.png" alt="AirPods Pro" />
+          <p>AirPods Pro</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category pulse" onclick="navigateToProduct('iphone')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" alt="iPhone 14" />
+          <p>iPhone 14</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category pulse" onclick="navigateToProduct('macbook')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2583/2583466.png" alt="MacBook Pro" />
+          <p>MacBook Pro</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category pulse" onclick="navigateToProduct('ps5')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2583/2583319.png" alt="PlayStation 5" />
+          <p>PlayStation 5</p>
+          <div class="hover-bar"></div>
+        </div>
+        <div class="category pulse" onclick="navigateToProduct('watch')">
+          <img src="https://cdn-icons-png.flaticon.com/512/2583/2583383.png" alt="Apple Watch" />
+          <p>Apple Watch</p>
+          <div class="hover-bar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Results Container -->
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer">
+      <div class="column" id="buy">  
+        <h3>Buy</h3>
+        <ul>
+          <li>Registration</li>
+          <li>Bidding & buying help</li>
+          <li>Stores</li>
+          <li>Creator Collections</li>
+          <li>eBay for Charity</li>
+        </ul>
+      </div>
+      <div class="column" id="sell">
+        <h3>Sell</h3>
+        <ul>
+          <li>Start selling</li>
+          <li>How to sell</li>
+          <li>Business sellers</li>
+          <li>Affiliates</li>
+        </ul>
+      </div>
+      <div class="column" id="help">
+        <h3>About eBay</h3>
+        <ul>
+          <li>Company info</li>
+          <li>News</li>
+          <li>Careers</li>
+          <li>Policies</li>
+        </ul>
+      </div>
+      <div class="column" id="contact">
+        <h3>Help & Contact</h3>
+        <ul>
+          <li>Seller Center</li>
+          <li>Contact Us</li>
+          <li>eBay Returns</li>
+        </ul>
+      </div>
+      <div class="column" id="community">
+        <h3>Community</h3>
+        <ul>
+          <li>Announcements</li>
+          <li>eBay Community</li>
+          <li>eBay for Business Podcast</li>
+        </ul>
+      </div>
+    </div>
+    <p>Copyright &copy; 1995-2025 eBay Inc. All Rights Reserved.</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Your store database
+    const storeDatabase = {
+        "stores": [
+          {
+            "id": "store1",
+            "name": "Suresh Electronics",
+            "address": "Main Road, Kadapa",
+            "latitude": 14.4673,
+            "longitude": 78.8242,
+            "products": [
+              { "name": "Samsung Galaxy M13", "price": 9999, "stock": 12 },
+              { "name": "Redmi Note 12", "price": 12999, "stock": 7 },
+              { "name": "Dell Inspiron 15", "price": 45999, "stock": 4 },
+              { "name": "HP Pavilion x360", "price": 59999, "stock": 2 },
+              { "name": "Apple AirPods Pro", "price": 24999, "stock": 8 },
+              { "name": "JBL Bluetooth Speaker", "price": 3499, "stock": 9 },
+              { "name": "Sony Headphones", "price": 4999, "stock": 5 },
+              { "name": "Canon DSLR 1500D", "price": 38999, "stock": 3 },
+              { "name": "Mi Power Bank", "price": 1099, "stock": 20 },
+              { "name": "Logitech Mouse", "price": 799, "stock": 15 }
+            ]
+          },
+          {
+            "id": "store2",
+            "name": "Vinayaka Mobiles",
+            "address": "RTC Bus Stand, Kadapa",
+            "latitude": 14.4698,
+            "longitude": 78.8293,
+            "products": [
+              { "name": "Samsung Galaxy M13", "price": 9799, "stock": 10 },
+              { "name": "Redmi Note 12", "price": 12499, "stock": 9 },
+              { "name": "Realme Narzo", "price": 10999, "stock": 6 },
+              { "name": "Apple iPhone 14", "price": 70999, "stock": 1 },
+              { "name": "HP Wired Mouse", "price": 499, "stock": 14 },
+              { "name": "Samsung SSD 500GB", "price": 3999, "stock": 7 },
+              { "name": "SanDisk Pen Drive", "price": 599, "stock": 22 },
+              { "name": "Mi Power Bank", "price": 1049, "stock": 17 },
+              { "name": "Logitech Keyboard", "price": 1299, "stock": 8 },
+              { "name": "JBL Bluetooth Speaker", "price": 3399, "stock": 6 }
+            ]
+          },
+          {
+            "id": "store3",
+            "name": "TechBazaar",
+            "address": "Beside RIMS Hospital",
+            "latitude": 14.4652,
+            "longitude": 78.8274,
+            "products": [
+              { "name": "Redmi Note 12", "price": 12199, "stock": 3 },
+              { "name": "Canon DSLR 1500D", "price": 37999, "stock": 4 },
+              { "name": "Sony Headphones", "price": 4699, "stock": 2 },
+              { "name": "Apple AirPods Pro", "price": 23999, "stock": 6 },
+              { "name": "Samsung SSD 1TB", "price": 6899, "stock": 2 },
+              { "name": "HP Pavilion x360", "price": 58999, "stock": 1 },
+              { "name": "Dell Inspiron 15", "price": 44999, "stock": 5 },
+              { "name": "Logitech Mouse", "price": 749, "stock": 12 },
+              { "name": "Mi Power Bank", "price": 999, "stock": 10 },
+              { "name": "SanDisk Pen Drive", "price": 499, "stock": 15 }
+            ]
+          },
+          {
+            "id": "store4",
+            "name": "Future Gadgets",
+            "address": "Beside Reliance Trends",
+            "latitude": 14.4686,
+            "longitude": 78.8320,
+            "products": [
+              { "name": "Samsung Galaxy M13", "price": 10049, "stock": 5 },
+              { "name": "Realme Narzo", "price": 10799, "stock": 6 },
+              { "name": "Dell Inspiron 15", "price": 45599, "stock": 3 },
+              { "name": "Logitech Mouse", "price": 739, "stock": 11 },
+              { "name": "HP Pavilion x360", "price": 59599, "stock": 2 },
+              { "name": "Redmi Note 12", "price": 12099, "stock": 8 },
+              { "name": "JBL Bluetooth Speaker", "price": 3299, "stock": 4 },
+              { "name": "SanDisk Pen Drive", "price": 549, "stock": 18 },
+              { "name": "Apple AirPods Pro", "price": 24499, "stock": 5 },
+              { "name": "Canon DSLR 1500D", "price": 38949, "stock": 2 }
+            ]
+          },
+          {
+            "id": "store5",
+            "name": "Gadget World",
+            "address": "Kadapa Junction, Tech Lane",
+            "latitude": 14.4701,
+            "longitude": 78.8255,
+            "products": [
+              { "name": "Samsung Galaxy M13", "price": 9899, "stock": 7 },
+              { "name": "Apple iPhone 14", "price": 69999, "stock": 2 },
+              { "name": "Realme Narzo", "price": 11199, "stock": 4 },
+              { "name": "Dell Inspiron 15", "price": 46049, "stock": 3 },
+              { "name": "Redmi Note 12", "price": 12299, "stock": 9 },
+              { "name": "HP Wired Mouse", "price": 549, "stock": 10 },
+              { "name": "Mi Power Bank", "price": 1149, "stock": 15 },
+              { "name": "Logitech Keyboard", "price": 1349, "stock": 7 },
+              { "name": "SanDisk Pen Drive", "price": 589, "stock": 20 },
+              { "name": "JBL Bluetooth Speaker", "price": 3599, "stock": 5 }
+            ]
+          }
+        ]
+      }
+      
+
+    // Carousel functionality
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('carouselDots');
+    
+    // Create dots
+    slides.forEach((slide, index) => {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      if(index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    });
+    
+    function goToSlide(index) {
+      currentSlide = index;
+      updateCarousel();
+    }
+    
+    function moveSlide(direction) {
+      currentSlide += direction;
+      if(currentSlide >= slides.length) currentSlide = 0;
+      if(currentSlide < 0) currentSlide = slides.length - 1;
+      updateCarousel();
+    }
+    
+    function updateCarousel() {
+      const slidesContainer = document.getElementById('slides');
+      slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+      
+      // Update dots
+      document.querySelectorAll('.dot').forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+      });
+    }
+     document.addEventListener('DOMContentLoaded', () => {
+      const username = localStorage.getItem('username');
+      if (username) {
+        document.getElementById('loginBtn').textContent = 'Logout';
+      }
+    }
+    );
+    // Auto slide change
+    setInterval(() => moveSlide(1), 5000);
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('active');
+      
+      const overlay = document.getElementById('overlay');
+      if (sidebar.classList.contains('active')) {
+        overlay.style.display = 'block';
+        setTimeout(() => overlay.style.opacity = '1', 10);
+      } else {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 300);
+      }
+    }
+
+    function redirectToCart() {
+      console.log('Redirect to cart');
+      // Show a nice toast notification
+      showToast('Your cart has 3 items', 'info');
+    }
+
+    function redirectToSignIn() {
+      window.location.href = "owner.html";
+    }
+
+    function navigateTo(section) {
+      showToast(`Navigating to ${section.replace('-', ' ')}`, 'info');
+      // In a real app, you would navigate to the section
+    }
+
+    function navigateToCategory(category) {
+      showToast(`Showing ${category.replace('-', ' ')} category`, 'info');
+      // In a real app, you would filter products by category
+    }
+
+    function navigateToProduct(product) {
+      showToast(`Showing details for ${product.replace('-', ' ')}`, 'info');
+      // In a real app, you would show product details
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => document.body.removeChild(toast), 300);
+      }, 3000);
+    }
+    // Modified findStores function
+async function findStores() {
+  const product = document.getElementById("product").value.trim().toLowerCase();
+  const searchResults = document.getElementById('searchResults');
+  
+  if (!product) {
+    showToast("Please enter a product name.", 'warning');
+    return;
+  }
+
+  // Check if we have location data
+  const storedLocation = JSON.parse(sessionStorage.getItem('userLocation'));
+  
+  if (!storedLocation) {
+    // Store the searched product temporarily
+    sessionStorage.setItem('pendingSearch', product);
+    // Redirect to get pincode first
+    window.location.href = "welcome.html";
+    return;
+  }
+  const userLat=14.3354;
+  const userLng=78.5399;
+
+  try {
+    searchResults.style.display = 'block';
+    searchResults.innerHTML = `
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <p>Searching for "${product}" near ${storedLocation.city}, ${storedLocation.pincode}...</p>
+      </div>
+    `;
+
+    // Simulate loading delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const matchingStores = storeDatabase.stores.map(store => {
+      const matchingProducts = store.products.filter(p => 
+        p.name.toLowerCase().includes(product)
+      );
+      
+      if (matchingProducts.length > 0) {
+        const distance = calculateDistance(
+          storedLocation.lat, 
+          storedLocation.lng, 
+          store.latitude, 
+          store.longitude
+        );
+        return { 
+          ...store, 
+          distance, 
+          matchingProducts,
+          open: true // Assuming stores are open
+        };
+      }
+      return null;
+    }).filter(store => store !== null);
+
+    matchingStores.sort((a, b) => a.distance - b.distance);
+
+    if (matchingStores.length === 0) {
+      searchResults.innerHTML = `
+        <div class="no-results slide-up">
+          <i class="fas fa-search" style="font-size: 3rem; color: #ccc; margin-bottom: 20px;"></i>
+          <h3>No stores found for "${product}" in ${storedLocation.city}</h3>
+          <p>Try searching for something else or check back later</p>
+          <button class="back-btn" onclick="clearSearch()">
+            <i class="fas fa-arrow-left"></i> Back to Home
+          </button>
+        </div>
+      `;
+    } else {
+      let resultsHTML = `
+        <div class="search-header slide-up">
+          <h2><i class="fas fa-store"></i> Stores with "${product}" in ${storedLocation.city}</h2>
+          <button class="back-btn" onclick="clearSearch()">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+        </div>
+      `;
+
+      matchingStores.forEach(store => {
+        resultsHTML += `
+          <div class="store-card fade-in">
+            <div class="store-header">
+              <div>
+                <h3 class="store-name">
+                  <i class="fas fa-store-alt"></i> ${store.name}
+                  <span class="store-status" style="background-color: ${store.open ? 'var(--success-color)' : 'var(--danger-color)'}">
+                    ${store.open ? 'Open' : 'Closed'}
+                  </span>
+                </h3>
+                <p class="store-address">
+                  <i class="fas fa-map-marker-alt"></i> ${store.address}
+                </p>
+                <p class="store-distance">
+                  <i class="fas fa-location-arrow"></i> ${store.distance.toFixed(1)} km away
+                </p>
+              </div>
+              <button class="select-store-btn" data-store-id="${store.id}" onclick="selectStore('${store.id}')">
+                <i class="fas fa-chevron-right"></i> View Store
+              </button>
+            </div>
+            
+            <div class="products">
+              <h4><i class="fas fa-boxes"></i> Available Products:</h4>
+              ${store.matchingProducts.map(product => `
+                <div class="product">
+                  <div class="product-info">
+                    <span class="product-name">${product.name}</span>
+                    <span class="product-stock ${getStockClass(product.stock)}">
+                      ${getStockText(product.stock)}
+                    </span>
+                  </div>
+                  <span class="product-price">₹${product.price.toLocaleString('en-IN')}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div id="map-${store.id}" class="store-map"></div>
+          </div>
+        `;
+      });
+
+      mainContent.innerHTML = resultsHTML;
+
+      // Initialize maps
+      matchingStores.forEach(store => {
+        const map = L.map(`map-${store.id}`).setView([store.latitude, store.longitude], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([store.latitude, store.longitude])
+          .addTo(map)
+          .bindPopup(`<b>${store.name}</b><br>${store.address}`)
+          .openPopup();
+      });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    searchResults.innerHTML = `
+      <div class="error">
+        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-color); margin-bottom: 20px;"></i>
+        <h3>Error searching for products</h3>
+        <p>${error.message}</p>
+        <button class="back-btn" onclick="clearSearch()">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+      </div>
+    `;
+  }
+  
+  // Clear pending search after showing results
+  sessionStorage.removeItem('pendingSearch');
+}
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+function getStockClass(stock) {
+  if (stock > 5) return 'in-stock';
+  if (stock > 0) return 'low-stock';
+  return 'out-of-stock';
+}
+function getStockText(stock) {
+  if (stock > 5) return `${stock} in stock`;
+  if (stock > 0) return `Only ${stock} left!`;
+  return 'Out of stock';
+}
+// Helper function to show user location in header
+function updateUserLocationDisplay() {
+  const storedLocation = JSON.parse(sessionStorage.getItem('userLocation'));
+  if (storedLocation) {
+    const header = document.querySelector('header');
+    
+    // Remove existing if present
+    const existing = document.querySelector('.user-location');
+    if (existing) existing.remove();
+    
+    const locationDisplay = document.createElement('div');
+    locationDisplay.className = 'user-location';
+    locationDisplay.innerHTML = `
+      <i class="fas fa-map-marker-alt"></i>
+      ${storedLocation.city}, ${storedLocation.pincode}
+    `;
+    header.appendChild(locationDisplay);
+  }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're returning with a location
+  const storedLocation = JSON.parse(sessionStorage.getItem('userLocation'));
+  const pendingSearch = sessionStorage.getItem('pendingSearch');
+  
+  if (pendingSearch && storedLocation) {
+    // Auto-fill the search and trigger search
+    document.getElementById('product').value = pendingSearch;
+    findStores();
+  }
+  
+  // Update location display
+  updateUserLocationDisplay();
+  
+  // Rest of your initialization code
+  updateCarousel();
+  
+  // Add animation classes to elements
+  setTimeout(() => {
+    document.querySelectorAll('.category').forEach((el, i) => {
+      setTimeout(() => {
+        el.classList.add('slide-up');
+      }, i * 100);
+    });
+  }, 500);
+});
+    // Initialize the page
+function clearSearch() {
+  const searchResults = document.getElementById('searchResults');
+  searchResults.style.display = 'none';
+  document.getElementById('product').value = '';
+  showToast('Search cleared', 'info');
+}
+
+// Update the header to show user's location
+function updateUserLocationDisplay() {
+  const storedLocation = JSON.parse(sessionStorage.getItem('userLocation'));
+  if (storedLocation) {
+    const header = document.querySelector('header');
+    
+    // Remove existing if present
+    const existing = document.querySelector('.user-location');
+    if (existing) existing.remove();
+    
+    const locationDisplay = document.createElement('div');
+    locationDisplay.className = 'user-location';
+    locationDisplay.innerHTML = `
+      <i class="fas fa-map-marker-alt"></i>
+      ${storedLocation.city}, ${storedLocation.pincode}
+    `;
+    header.appendChild(locationDisplay);
+  }
+}
+
+// Call this in your DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  updateUserLocationDisplay();
+  // ... rest of initialization
+});
+function selectStore(storeId) {
+  // Get the store data from the database
+  const store = storeDatabase.stores.find(s => s.id === storeId);
+  
+  if (store) {
+    // Store the selected store data in sessionStorage
+    sessionStorage.setItem('selectedStore', JSON.stringify(store));
+    
+    // Redirect to product.html
+    window.location.href = 'product.html';
+  } else {
+    showToast('Store not found', 'error');
+  }
+} 
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're returning with a location
+  const storedLocation = JSON.parse(sessionStorage.getItem('userLocation'));
+  const pendingSearch = sessionStorage.getItem('pendingSearch');
+  
+  if (pendingSearch && storedLocation) {
+    // Auto-fill the search and trigger search
+    document.getElementById('product').value = pendingSearch;
+    findStores();
+  }
+  
+  // Update location display
+  updateUserLocationDisplay();
+  
+  // Rest of your initialization code
+  updateCarousel();
+  
+  // Add animation classes to elements
+  setTimeout(() => {
+    document.querySelectorAll('.category').forEach((el, i) => {
+      setTimeout(() => {
+        el.classList.add('slide-up');
+      }, i * 100);
+    });
+  }, 500);
+});
+
+    // Toast notification styles (added via JavaScript to keep HTML clean)
+    const toastStyles = document.createElement('style');
+    toastStyles.textContent = `
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 1100;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .toast-info {
+        background-color: var(--primary-color);
+      }
+      .toast-warning {
+        background-color: var(--warning-color);
+        color: var(--dark-color);
+      }
+      .toast-success {
+        background-color: var(--success-color);
+      }
+      .toast-error {
+        background-color: var(--danger-color);
+      }
+    `;
+    document.head.appendChild(toastStyles);
+  </script>
+</body>
+</html>

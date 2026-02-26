@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <style>body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #2c8e8f, #1b3c52);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    /* Container */
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        width: 300px;
+    }
+    
+    /* Input Fields */
+    input {
+        width: 90%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    
+    /* Button */
+    button {
+        width: 100%;
+        padding: 10px;
+        background: #2c8e8f;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    button:hover {
+        background: #226b6c;
+    }
+    
+    /* Links */
+    p {
+        margin-top: 10px;
+    }
+    
+    p a {
+        color: #2c8e8f;
+        text-decoration: none;
+    }
+    .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        background: #4285F4;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        width: 200px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    
+    .google-btn:hover {
+        background: #357ae8;
+    }
+    
+</style>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="login-box">
+            <h2>Login</h2>
+            <input type="text" id="login-username" placeholder="Enter Username" required>
+            <input type="password" id="login-password" placeholder="Enter Password" required>
+            <button onclick="handleLogin()">Login</button>
+            <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-box" style="display: none;">
+            <h2>Sign Up</h2>
+            <input type="text" id="signup-username" placeholder="Choose a Username" required>
+            <input type="password" id="signup-password" placeholder="Choose a Password" required>
+            <button onclick="signup()">Sign Up</button>
+            <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+
+            <a href="http://localhost:3000/auth/google" class="google-btn">
+                <i class="fa fa-google"></i> Continue with Google
+            </a>
+            
+            
+        </div>
+    </div>
+
+    <script>function showSignup() {
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("signup-box").style.display = "block";
+    }
+    
+    // Show Login Form
+    function showLogin() {
+        document.getElementById("signup-box").style.display = "none";
+        document.getElementById("login-box").style.display = "block";
+    }
+    
+    // Signup Function
+    function signup() {
+        let username = document.getElementById("signup-username").value;
+        let password = document.getElementById("signup-password").value;
+    
+        if (username === "" || password === "") {
+            alert("Please enter a username and password.");
+            return;
+        }
+    
+        if (localStorage.getItem(username)) {
+            alert("Username already exists. Choose a different one.");
+            return;
+        }
+    
+        localStorage.setItem(username, password);
+        alert("Signup successful! You can now log in.");
+        showLogin();
+    }
+
+</script>
+<script>
+    function handleLogin() {
+        let username = document.getElementById("login-username").value;
+        let password = document.getElementById("login-password").value;
+        const usernameInput = document.getElementById('login-username');
+        const passwordInput = document.getElementById('login-password');
+    
+  
+    
+        if (!username || !password) {
+            alert("Please enter both username and password.");
+            return;
+        }
+    
+        fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Login successful!");
+                window.location.href = "/profile";
+            } else {
+                alert(data.message || "Invalid credentials!");
+            }
+        })
+        .catch(error => console.error("Login error:", error));
+    
+   
+
+      if (!username || !password) {
+        alert("Please enter both username and password.");
+        return;
+      }
+  
+      const storedPassword = localStorage.getItem(username);
+      if (storedPassword && storedPassword === password) {
+        localStorage.setItem('username', username);
+  
+        // Redirect to return URL if exists
+        const params = new URLSearchParams(window.location.search);
+        const returnUrl = params.get('return') || 'rough.html';
+        window.location.href = returnUrl;
+      } else {
+        alert("Invalid username or password.");
+      }
+    }
+  </script>
+  
+</body>
+</html>
